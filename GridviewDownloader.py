@@ -168,14 +168,14 @@ class GridviewDownloader(threading.Thread):
                     # progress_bar.update(tmpSize)
                     progress =  Progress(
                             TextColumn("[progress.description]{task.description}"),
-                            BarColumn(),
+                            BarColumn(complete_style="#fd79a8"),
                             DownloadColumn(binary_units=True),
                             TransferSpeedColumn(),
                             TaskProgressColumn(),
                             TimeRemainingColumn(),
                             auto_refresh=True
                             )
-                    task = progress.add_task("[red]Downloading...", total=llen + tmpSize)
+                    task = progress.add_task("[#fd79a8]Downloading...", total=llen + tmpSize)
                     progress.update(task, advance=tmpSize)
                     progress.start()
                 with open(tmpPath, "a" if file.get('isDirectory') else "ab") as f:
@@ -187,6 +187,10 @@ class GridviewDownloader(threading.Thread):
                             progress.update(task, advance=len(content))
                         f.write(content)
                         f.flush()
+                
+                if progress:
+                    progress.stop()
+                    progress = None
             assert os.path.getsize(tmpPath) == file.get("size")
             os.rename(tmpPath, savePath)
 
@@ -195,5 +199,6 @@ class GridviewDownloader(threading.Thread):
             #     progress_bar.close()
             if progress:
                 progress.stop()
+                progress = None
         print("ファイルはダウンロードすることがしまいました")
         return filePath
