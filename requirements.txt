@@ -1,0 +1,10 @@
+numpy
+pandas
+PyTermGUI
+requests
+requests-toolbelt==1.0.0
+rich
+ruamel.yaml==0.17.32
+ruamel.yaml.clib==0.2.7
+scipy
+tqdm

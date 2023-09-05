@@ -1,0 +1,113 @@
+url:
+    main: http://211.91.62.3:26081
+    filemanager: http://211.91.62.3:26085
+routes:
+    login:
+        checkLock: /login/checkLock.action
+        loginAuth: /login/loginAuth.action
+        UserAuthToken: /login/createUserAuthToken.action
+    account:
+        globalInfo: /sothisai/api/config/global
+        indexData: /pageframe/main/getIndexData.action
+    filemanager:
+        sessionReg: /efile/index.action
+        initInfo: /efile/initInfo.action
+        list: /efile/list.action
+        downloadCheck: /efile/downloadCheck.action
+        multiDownload: /efile/multiDownload.action
+        exist: /efile/exist.action
+        chunkUpload: /efile/chunkUpload.action
+        merge: /efile/merge.action
+dataForm:
+    login:
+        checkLock:
+            method: get
+        loginAuth:
+            method: post
+            dataType: formData
+            kv:
+                username: strUserName
+                password: strPassword
+            data:
+                strUserName:
+                strPassword:
+                strUserType: os
+                authCode:
+    account:
+        globalInfo:
+            method: get
+        indexData:
+            method: get
+    filemanager:
+        sessionReg:
+            method: get
+            dataType: params
+            data:
+                token:
+                # service: sothisai
+                service: gridview_10.10.10.251
+                language: en-US
+                titleName: FileManager
+        list:
+            method: get
+            dataType: params
+            optional:
+                order: ["asc", "desc"]
+                orderBy: ["name", "size", "lastModifiedTime"]
+            data:
+                order: asc
+                orderBy: name
+                path:
+                start: 0
+                limit: 500
+                keyWord:
+                lockFileName:
+        initInfo:
+            method: get
+        downloadCheck:
+            method: post
+            dataType: data
+            data:
+                paths:
+                urlLimit: false
+        multiDownload:
+            method: get
+            dataType: params
+            data:
+                paths:
+        exist:
+            method: post
+            dataType: data
+            data:
+                path:
+        chunkUpload:
+            method: post
+            dataType: data
+            optional:
+                cover: ["uncover", "cover"]
+            data:
+                chunkNumber:
+                chunkSize:
+                currentChunkSize:
+                totalSize:
+                identifier:
+                filename:
+                relativePath:
+                totalChunks:
+                path:
+                cover:
+                file:
+            nonull: [file, filename, path, relativePath, totalChunks, totalSize]
+        merge:
+            method: post
+            dataType: data
+            optional:
+                cover: ["uncover", "cover"]
+            data:
+                cover:
+                path:
+                relativePath:
+
+headers:
+    userAgent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0
+    Referer: http://211.91.62.3:26085/efile/index.html
