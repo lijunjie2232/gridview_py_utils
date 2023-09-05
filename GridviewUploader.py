@@ -107,11 +107,12 @@ class GridviewUploader(threading.Thread):
         assert os.path.isfile(filePath), "filePath must be a file"
 
         fileName = os.path.split(filePath)[-1]
-        destPath = targetDir
-        if destPath.startswith("~/"):
-            destPath = destPath[2:]
-        if not destPath.startswith("/"):
-            destPath = os.path.join(self.userHome, destPath)
+        # destPath = targetDir
+        # if destPath.startswith("~/"):
+        #     destPath = destPath[2:]
+        # if not destPath.startswith("/"):
+        #     destPath = os.path.join(self.userHome, destPath)
+        destPath = self._filemanager.pathFormater(targetDir)
         assert destPath.startswith(self.userHome), "invalid path: %s"%destPath
         
         assert self._filemanager.exists(destPath), "do not support file operation yet, please ensure target diredtory exists first"

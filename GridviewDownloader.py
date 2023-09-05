@@ -10,6 +10,7 @@ from GridviewFile import GridviewFile
 import json
 import threading
 from tqdm import tqdm
+from rich.progress import Progress, DownloadColumn, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TransferSpeedColumn
 
 
 class GridviewDownloader(threading.Thread):
@@ -149,6 +150,7 @@ class GridviewDownloader(threading.Thread):
             }
 
             progress_bar = None
+            task = 0
             # noinspection PyProtectedMember
             with self._session.request(
                 method=multiDownloadMethod,
@@ -160,23 +162,38 @@ class GridviewDownloader(threading.Thread):
                 if resp.headers.get("Accept-Ranges", None) != "bytes":
                     raise ValueError(f'リンク"{resp.url}"が期限切れました')
                 if showProgress:
-                    progress_bar = tqdm(
-                        total=llen + tmpSize, unit="B", unit_scale=True, colour="#fd79a8"
-                    )
-                    progress_bar.update(tmpSize)
+                    # progress_bar = tqdm(
+                    #     total=llen + tmpSize, unit="B", unit_scale=True, colour="#fd79a8"
+                    # )
+                    # progress_bar.update(tmpSize)
+                    progress =  Progress(
+                            TextColumn("[progress.description]{task.description}"),
+                            BarColumn(),
+                            DownloadColumn(binary_units=True),
+                            TransferSpeedColumn(),
+                            TaskProgressColumn(),
+                            TimeRemainingColumn(),
+                            auto_refresh=True
+                            )
+                    task = progress.add_task("[red]Downloading...", total=llen + tmpSize)
+                    progress.update(task, advance=tmpSize)
+                    progress.start()
                 with open(tmpPath, "a" if file.get('isDirectory') else "ab") as f:
                     for content in resp.iter_content(
                         chunk_size=self._CHUNK_SIZE
                     ):
                         if showProgress:
-                            progress_bar.update(len(content))
+                            # progress_bar.update(len(content))
+                            progress.update(task, advance=len(content))
                         f.write(content)
                         f.flush()
             assert os.path.getsize(tmpPath) == file.get("size")
             os.rename(tmpPath, savePath)
 
         finally:
-            if progress_bar:
-                progress_bar.close()
+            # if progress_bar:
+            #     progress_bar.close()
+            if progress:
+                progress.stop()
         print("ファイルはダウンロードすることがしまいました")
         return filePath
