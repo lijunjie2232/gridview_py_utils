@@ -1,24 +1,23 @@
-import requests
-import re
-import time
-import rich
+# import requests
+# import re
+# import time
 import os
 import shutil
 from configparser import ConfigParser
-from GridviewFile import GridviewFile
-# from GridviewFileManager import GridviewFileManager
 import json
 import threading
-from tqdm import tqdm
+# from tqdm import tqdm
 from rich.progress import Progress, DownloadColumn, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TransferSpeedColumn
 
+from .GridviewFile import GridviewFile
+from .GridviewFileManager import GridviewFileManager
 
 class GridviewDownloader(threading.Thread):
     _CHUNK_SIZE = 512*1024  # 8 MB
 
     def __init__(
         self,
-        filemanager,
+        filemanager:GridviewFileManager,
         globalConfig: ConfigParser=None,
         GridviewConfig: dict=None,
         chunkSize: int = None
@@ -172,7 +171,8 @@ class GridviewDownloader(threading.Thread):
                             DownloadColumn(binary_units=True),
                             TransferSpeedColumn(),
                             TaskProgressColumn(),
-                            TimeRemainingColumn(),
+                            ' eta:',
+                            TimeRemainingColumn(compact=True),
                             auto_refresh=True
                             )
                     task = progress.add_task("[#fd79a8]Downloading...", total=llen + tmpSize)

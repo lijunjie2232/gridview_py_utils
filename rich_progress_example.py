@@ -1,5 +1,4 @@
 import time
-from typing import Union
 from rich.progress import Progress, DownloadColumn, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, TransferSpeedColumn
 
 progress =  Progress(
@@ -8,12 +7,13 @@ progress =  Progress(
         DownloadColumn(binary_units=True),
         TransferSpeedColumn(),
         TaskProgressColumn(),
-        TimeRemainingColumn(),
+        ' eta:',
+        TimeRemainingColumn(compact=True),
         auto_refresh=True
         )
 
 task1 = progress.add_task("[red]Downloading...", total=10)
-task2 = progress.add_task("[#fd79a8]Processing...", total=15000)
+task2 = progress.add_task("[#fd79a8]%s[%s] Processing..."%('chuck','12'), total=15000)
 task3 = progress.add_task("[cyan]Cooking...", total=50000000)
 
 progress.start()

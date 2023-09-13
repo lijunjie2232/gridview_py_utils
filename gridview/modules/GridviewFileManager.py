@@ -3,12 +3,10 @@ import configparser
 from requests import Session
 import json
 import os
-from GridviewDownloader import GridviewDownloader
-from GridviewUploader import GridviewUploader
-from GlobalConfig import getConfig
-from GridviewFile import GridviewFile
 
-from GridviewFile import GridviewFile
+from .GlobalConfig import getConfig
+from .GridviewFile import GridviewFile
+
 class GridviewFileManager:
     class Stack:
         def __init__(self, min=0, initData:list=[]):
@@ -220,7 +218,7 @@ class GridviewFileManager:
     
     def getFile(self, filePath:str)->GridviewFile:
         filePath = self.pathFormater(filePath)
-        assert self.exists(filePath)
+        assert self.exists(filePath), 'file %s not exists'%filePath
         dirName, fileName = os.path.split(filePath)
         fileData = self.listFiles(
             path=dirName,
@@ -267,29 +265,31 @@ class GridviewFileManager:
         file, _ = self.lsDir(dirName)
         return file[file["name"].str.contains(pattern)]
     
-    def getDownloader(
-        self,
-        chunkSize:int=None
-    )->GridviewDownloader:
-        if not self._downloaders:
-            self._downloaders = GridviewDownloader(
-                self,
-                chunkSize=chunkSize
-            )
-        return self._downloaders
+    # @DeprecationWarning
+    # def getDownloader(
+    #     self,
+    #     chunkSize:int=None
+    # )->GridviewDownloader:
+    #     if not self._downloaders:
+    #         self._downloaders = GridviewDownloader(
+    #             self,
+    #             chunkSize=chunkSize
+    #         )
+    #     return self._downloaders
     
-    def getUploader(
-        self,
-        chunkSize:int=None,
-        threadNum:int=None
-    )->GridviewUploader:
-        if not self._uploaders:
-            self._uploaders = GridviewUploader(
-                self,
-                chunkSize=chunkSize,
-                threadNum=threadNum,
-            )
-        return self._uploaders
+    # @DeprecationWarning
+    # def getUploader(
+    #     self,
+    #     chunkSize:int=None,
+    #     threadNum:int=None
+    # )->GridviewUploader:
+    #     if not self._uploaders:
+    #         self._uploaders = GridviewUploader(
+    #             self,
+    #             chunkSize=chunkSize,
+    #             threadNum=threadNum,
+    #         )
+    #     return self._uploaders
     
     def getFileManagerInitInfo(self)->dict:
         return self._fileManagerInitInfo

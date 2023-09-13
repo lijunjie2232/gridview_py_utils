@@ -6,8 +6,7 @@ import pickle
 import time
 import traceback
 import getpass
-from GridviewFileManager import GridviewFileManager
-
+from .GlobalConfig import getConfig
 
 class GridviewAccount:
     def __init__(
@@ -16,8 +15,8 @@ class GridviewAccount:
         password: str = None,
         configDir: str = "./config",
         GridviewConfigName: str = "GridviewConfig.yaml",
-        dataDir: str = "./data",
-        saveName="lastLogin.bin",
+        cacheDir: str = "",
+        saveName="",
         Gridviewconfig: dict = None,
         fromSerializationFile=None,
     ):
@@ -25,22 +24,29 @@ class GridviewAccount:
         self._session = None
         self._username = username
         self._password = password
-        self.dataDir = dataDir
-        self.saveName = saveName
+        self.tmpDir = cacheDir
+        self.statusName = saveName
         self._globalInfo = None
         if Gridviewconfig:
-            self._config = Gridviewconfig
+            self._gridview_config = Gridviewconfig
         else:
-            self._config = self.readYAMLConfig(configPath)
+            self._gridview_config = self.readYAMLConfig(configPath)
+            
+        self._globalConfig = getConfig()
+        if not self.tmpDir:
+            self.tmpDir = self._globalConfig['global']['tmp_dir']
+        if not self.statusName:
+            self.statusName = self._globalConfig['global']['statue_tmp_name']
+        
 
         if fromSerializationFile:
-            print("fromSerializationFile: %s" % fromSerializationFile)
+            # print("fromSerializationFile: %s" % fromSerializationFile)
             self.antiSerialization(
                 filePath=fromSerializationFile, refreshGlobalInfo=True
             )
-        elif os.path.exists(os.path.join(dataDir, saveName)) and not self._globalInfo:
+        elif os.path.exists(os.path.join(self.tmpDir, self.statusName)) and not self._globalInfo:
             self.antiSerialization(
-                filePath=os.path.join(dataDir, saveName), refreshGlobalInfo=True
+                filePath=os.path.join(self.tmpDir, self.statusName), refreshGlobalInfo=True
             )
 
         while not self._username:
@@ -58,7 +64,7 @@ class GridviewAccount:
 
         if self._globalInfo:
             self.serialization()
-            print("GridviewAccount successfully initialized by last status\nusername: %s"%self._username)
+            # print("GridviewAccount successfully initialized by last status\nusername: %s"%self._username)
             return
 
         self._password = None
@@ -67,13 +73,13 @@ class GridviewAccount:
         # elif self._username and self._password:
         self._session = requests.Session()
         self._session.headers.update(
-            {"User-Agent": self._config["headers"]["userAgent"]}
+            {"User-Agent": self._gridview_config["headers"]["userAgent"]}
         )
         self.login()
         self._globalInfo = self.fetchGlobalInfo()
         assert self._globalInfo, "can not initialize account class yet"
         self.serialization()
-        print("GridviewAccount successfully initialized by login: %s"%self._username)
+        # print("GridviewAccount successfully initialized by login: %s"%self._username)
 
     def login(self, username=None, password=None):
         try:
@@ -82,11 +88,11 @@ class GridviewAccount:
             if not password:
                 password = self._password
 
-            mainUrl = self._config["url"]["main"]
-            checkLockRoutes = self._config["routes"]["login"]["checkLock"]
-            loginAuthRoutes = self._config["routes"]["login"]["loginAuth"]
-            checkLockMethod = self._config["dataForm"]["login"]["checkLock"]["method"]
-            loginAuthMethod = self._config["dataForm"]["login"]["loginAuth"]["method"]
+            mainUrl = self._gridview_config["url"]["main"]
+            checkLockRoutes = self._gridview_config["routes"]["login"]["checkLock"]
+            loginAuthRoutes = self._gridview_config["routes"]["login"]["loginAuth"]
+            checkLockMethod = self._gridview_config["dataForm"]["login"]["checkLock"]["method"]
+            loginAuthMethod = self._gridview_config["dataForm"]["login"]["loginAuth"]["method"]
 
             checkLock = json.loads(
                 self._session.request(
@@ -95,8 +101,8 @@ class GridviewAccount:
             )
             assert not checkLock["result"], "client has been blocked by target website"
 
-            data = self._config["dataForm"]["login"]["loginAuth"]["data"]
-            k_v = self._config["dataForm"]["login"]["loginAuth"]["kv"]
+            data = self._gridview_config["dataForm"]["login"]["loginAuth"]["data"]
+            k_v = self._gridview_config["dataForm"]["login"]["loginAuth"]["kv"]
             data[k_v["username"]] = username
             data[k_v["password"]] = password
             loginResult = self._session.request(
@@ -117,9 +123,10 @@ class GridviewAccount:
 
     def serialization(self, userCacheDir: str = None, name: str = None):
         if userCacheDir is None:
-            userCacheDir = self.dataDir
+            userCacheDir = self.tmpDir
+        os.makedirs(userCacheDir, exist_ok=True)
         if name is None:
-            name = self.saveName
+            name = self.statusName
         with open(os.path.join(userCacheDir, name), "wb") as f:
             session_data = {
                 "session": self._session,
@@ -133,7 +140,7 @@ class GridviewAccount:
         filePath="./data/latestLogin.db",
         refreshGlobalInfo=True
     ):
-        print("antiSerializing ...")
+        # print("antiSerializing ...")
         assert os.path.isfile(filePath), "serialization file not exists"
         with open(filePath, "rb") as f:
             session_dump_data = pickle.load(f)
@@ -148,13 +155,17 @@ class GridviewAccount:
             self.uasename = tmp["userName"]
         if not self._password:
             self._password = tmp["passwd"]
+            
+    def refresh(self):
+        if not self.fetchGlobalInfo():
+            self.login(self._username, self._password)
 
     def fetchGlobalInfo(self) -> dict:
         try:
             assert self._session
-            mainUrl = self._config["url"]["main"]
-            globalInfoRoute = self._config["routes"]["account"]["globalInfo"]
-            globalInfoMethod = self._config["dataForm"]["account"]["globalInfo"]["method"]
+            mainUrl = self._gridview_config["url"]["main"]
+            globalInfoRoute = self._gridview_config["routes"]["account"]["globalInfo"]
+            globalInfoMethod = self._gridview_config["dataForm"]["account"]["globalInfo"]["method"]
 
             globalInfo = json.loads(
                 self._session.request(
@@ -183,7 +194,7 @@ class GridviewAccount:
         return self._globalInfo
 
     def getGridviewConfig(self) -> dict:
-        return self._config
+        return self._gridview_config
 
     def getSession(self) -> requests.Session:
         return self._session
@@ -208,8 +219,6 @@ class GridviewAccount:
         assert self._globalInfo, "not initialized yet"
         return self._globalInfo["managerServerIp"]
 
-    def getGridviewFileManager(self)->GridviewFileManager:
-        return GridviewFileManager(self)
-
-if __name__ == "__main__":
-    pass
+    # @DeprecationWarning
+    # def getGridviewFileManager(self)->GridviewFileManager:
+    #     return GridviewFileManager(self)

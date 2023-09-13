@@ -1,17 +1,15 @@
 from configparser import ConfigParser
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
-from copy import deepcopy
 import threading
 from rich.progress import Progress
 from concurrent.futures import ThreadPoolExecutor
-import sys
 import traceback
 import json
 import os
 import time
-# from GridviewFileManager import GridviewFileManager
 import uuid
 
+from .GridviewFileManager import GridviewFileManager
  
 class GridviewUploader(threading.Thread):
     _CHUNK_SIZE = 10*1024*1024
@@ -23,7 +21,7 @@ class GridviewUploader(threading.Thread):
     
     def __init__(
         self,
-        filemanager,
+        filemanager:GridviewFileManager,
         globalConfig: ConfigParser=None,
         GridviewConfig: dict=None,
         chunkSize: int = None,
@@ -76,7 +74,7 @@ class GridviewUploader(threading.Thread):
                 me,
                 lambda monitor: self._progress.update(task, completed=monitor.bytes_read)
             )
-            task = self._progress.add_task("[#fd79a8]\[%s-%s]Uploading"%("chunk", data["chunkNumber"]), total=m.len)
+            task = self._progress.add_task("[#fd79a8]%s[%s]Uploading"%("chunk", data["chunkNumber"]), total=m.len)
             resp = self._session.request(
                 method = method,
                 url = url,
@@ -147,7 +145,7 @@ class GridviewUploader(threading.Thread):
             speed_estimate_period = 10
         )
         self._progress.start()
-        self._main_task = self._progress.add_task("[#0984e3]\[Total Upload]", total=totalChunks)
+        self._main_task = self._progress.add_task("[#0984e3]Total Upload", total=totalChunks)
         
         with open(filePath, 'rb') as f:
             chunkNumber = 1
@@ -201,7 +199,7 @@ class GridviewUploader(threading.Thread):
         """ success:
         {
             "code": "0",
-            "data": "/public/home/lijunjie/test/HTTP_Debugger_Professional_v9.11.zip",
+            "data": "/public/home/user/test/HTTP_Debugger_Professional_v9.11.zip",
             "msg": "操作成功"
         }
         """

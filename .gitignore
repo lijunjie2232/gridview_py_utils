@@ -166,3 +166,4 @@ ref/
 .vscode/
 *.ipynb
 *.bak
+.cache/
