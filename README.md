@@ -51,13 +51,15 @@ gu.singleUpload(
 
 ## simple usage of CLI:
 ```shell
-# run such command on shell with python env:
-$ python ./main.py
+# run such command on shell with python env
+python ./main.py
 
-# or just run command after install this project as python moudle:
-$ gridview
+# install this project as python moudle
+pip install -v -e .
+# enter command
+gridview
 # then type help for help
-$ help
+help
 ```
 
 ### tow mode for cli:
