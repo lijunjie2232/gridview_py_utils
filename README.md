@@ -50,7 +50,7 @@ gu.singleUpload(
 ```
 
 ## simple usage of CLI:
-```(shell)
+```shell
 # run such command on shell with python env:
 $ python ./main.py
 
