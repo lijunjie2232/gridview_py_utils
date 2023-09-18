@@ -27,7 +27,7 @@ class FileManagerMode(Commander):
             "-r", "--remote-file", type=str, required=True, help="path of remote file"
         )
         parser.add_argument(
-            "-d", "--remote-dir", type=str, help="specify dir to receive file"
+            "-d", "--local-dir", type=str, help="specify dir to receive file"
         )
         parser.add_argument("-l", "--local-file", type=str, help="specify file path or name")
         parser.add_argument(
@@ -73,8 +73,8 @@ class FileManagerMode(Commander):
                 )
                 args.keep_dir_structur = False
         else:
-            assert args.remote_dir, "one of arguments -d or -l should be specified"
-            out_path = args.remote_dir
+            assert args.local_dir, "one of arguments -d or -l should be specified"
+            out_path = args.local_dir
         gd.singleDownload(file, out_path, out_name, args.keep_dir_structure)
 
     def upload(self, args):
